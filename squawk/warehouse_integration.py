@@ -48,31 +48,25 @@ class WarehouseIntegration:
             raise
 
     def _ensure_schema(self):
-        """Ensure sentiment tables exist in warehouse."""
-        schema_path = self.warehouse_path.parent / "sql" / "sentiment_schema.sql"
-        
-        if not schema_path.exists():
-            logger.warning(f"Sentiment schema file not found: {schema_path}")
-            return
-
+        """Ensure sentiment tables exist in warehouse (skip if already exist)."""
         try:
-            with open(schema_path, 'r') as f:
-                schema_sql = f.read()
+            # Check if key tables exist
+            result = self.conn.execute("""
+                SELECT COUNT(*) 
+                FROM information_schema.tables 
+                WHERE table_name IN ('news_sentiment', 'sentiment_aggregates', 'market_events', 'sentiment_signals')
+                AND table_schema = 'main'
+            """).fetchone()
             
-            # Execute schema statements
-            for statement in schema_sql.split(';'):
-                statement = statement.strip()
-                if statement and not statement.startswith('--'):
-                    try:
-                        self.conn.execute(statement)
-                    except Exception as e:
-                        # May fail on CREATE if tables already exist
-                        if "already exists" not in str(e).lower():
-                            logger.debug(f"Schema statement issue: {e}")
+            if result and result[0] >= 4:
+                logger.info("Sentiment schema already exists in warehouse")
+                return
             
-            logger.info("Sentiment schema verified in warehouse")
+            logger.info("Sentiment tables not found, will need manual initialization")
+            logger.info("Run: cd quant-sql-warehouse && python init_sentiment.py")
+            
         except Exception as e:
-            logger.error(f"Failed to initialize sentiment schema: {e}")
+            logger.error(f"Failed to check schema: {e}")
 
     def close(self):
         """Close warehouse connection."""
@@ -212,7 +206,8 @@ class WarehouseIntegration:
             Number of aggregate rows created
         """
         try:
-            self.conn.execute("""
+            # Use string formatting for INTERVAL since parameterized queries don't work well with it
+            query = f"""
                 INSERT INTO sentiment_aggregates (
                     hour_timestamp, avg_sentiment, sentiment_count,
                     risk_on_count, risk_off_count, neutral_count,
@@ -230,16 +225,21 @@ class WarehouseIntegration:
                     MAX(CASE WHEN 'NFP' = ANY(economic_indicators) THEN 1 ELSE 0 END)::BOOLEAN as has_nfp,
                     MAX(CASE WHEN array_length(fed_officials) > 0 THEN 1 ELSE 0 END)::BOOLEAN as has_fed_speaker
                 FROM news_sentiment
-                WHERE timestamp >= CURRENT_TIMESTAMP - INTERVAL ? HOUR
+                WHERE timestamp >= CURRENT_TIMESTAMP - INTERVAL '{hours_back}' HOUR
                     AND NOT EXISTS (
                         SELECT 1 FROM sentiment_aggregates sa 
                         WHERE sa.hour_timestamp = date_trunc('hour', news_sentiment.timestamp)
                     )
                 GROUP BY hour
-            """, [hours_back])
-
-            count = self.conn.execute("SELECT changes()").fetchone()[0]
-            logger.info(f"Computed {count} sentiment aggregates")
+            """
+            
+            result = self.conn.execute(query)
+            # DuckDB doesn't have changes(), so we count the aggregates we just created
+            count_result = self.conn.execute("""
+                SELECT COUNT(*) FROM sentiment_aggregates
+            """).fetchone()
+            count = count_result[0] if count_result else 0
+            logger.info(f"Computed sentiment aggregates (total: {count})")
             return count
 
         except Exception as e:
@@ -251,16 +251,17 @@ class WarehouseIntegration:
     def get_recent_news(self, hours: int = 24, limit: int = 100) -> List[Dict[str, Any]]:
         """Get recent news from warehouse."""
         try:
-            result = self.conn.execute("""
+            query = f"""
                 SELECT 
                     news_id, timestamp, source, title, summary,
                     sentiment_score, sentiment_label, confidence,
                     fed_officials, economic_indicators, is_high_impact
                 FROM news_sentiment
-                WHERE timestamp >= CURRENT_TIMESTAMP - INTERVAL ? HOUR
+                WHERE timestamp >= CURRENT_TIMESTAMP - INTERVAL '{hours}' HOUR
                 ORDER BY timestamp DESC
-                LIMIT ?
-            """, [hours, limit]).fetchdf()
+                LIMIT {limit}
+            """
+            result = self.conn.execute(query).fetchdf()
 
             return result.to_dict('records')
         except Exception as e:
@@ -270,7 +271,7 @@ class WarehouseIntegration:
     def get_sentiment_timeseries(self, hours: int = 168) -> List[Dict[str, Any]]:
         """Get hourly sentiment aggregates."""
         try:
-            result = self.conn.execute("""
+            query = f"""
                 SELECT 
                     hour_timestamp,
                     avg_sentiment,
@@ -279,9 +280,10 @@ class WarehouseIntegration:
                     risk_off_count,
                     neutral_count
                 FROM sentiment_aggregates
-                WHERE hour_timestamp >= CURRENT_TIMESTAMP - INTERVAL ? HOUR
+                WHERE hour_timestamp >= CURRENT_TIMESTAMP - INTERVAL '{hours}' HOUR
                 ORDER BY hour_timestamp DESC
-            """, [hours]).fetchdf()
+            """
+            result = self.conn.execute(query).fetchdf()
 
             return result.to_dict('records')
         except Exception as e:
