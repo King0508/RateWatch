@@ -11,6 +11,7 @@ from .formatting import format_markdown, format_slack
 try:
     from .ml_sentiment import sentiment_score_ml
     from .entity_extraction import extract_entities
+
     ML_AVAILABLE = True
 except ImportError:
     ML_AVAILABLE = False
@@ -18,14 +19,14 @@ except ImportError:
 # Import warehouse integration
 try:
     from .warehouse_integration import get_warehouse
+
     WAREHOUSE_AVAILABLE = True
 except ImportError:
     WAREHOUSE_AVAILABLE = False
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -54,84 +55,84 @@ def push_slack(text: str) -> None:
 def process_with_ml(items: list, use_ml: bool = True) -> list:
     """
     Process items with ML sentiment analysis and entity extraction.
-    
+
     Args:
         items: List of news items
         use_ml: Whether to use ML models (default: True)
-        
+
     Returns:
         Items with added sentiment_score, sentiment_label, confidence, entities
     """
     if not use_ml or not ML_AVAILABLE:
         logger.info("ML processing disabled or unavailable, using rule-based sentiment")
         return items
-    
+
     logger.info("Processing items with FinBERT and entity extraction...")
-    
+
     for item in items:
         text = f"{item['title']} {item['summary']}"
-        
+
         # ML sentiment analysis
         try:
             score, label, confidence = sentiment_score_ml(text)
-            item['sentiment_score'] = score
-            item['sentiment_label'] = label
-            item['confidence'] = confidence
+            item["sentiment_score"] = score
+            item["sentiment_label"] = label
+            item["confidence"] = confidence
         except Exception as e:
             logger.warning(f"ML sentiment failed: {e}, using fallback")
             # Fallback to rule-based
-            item['sentiment_score'] = item.get('score', 0)
-            item['sentiment_label'] = item.get('label', 'neutral')
-            item['confidence'] = 0.5
-        
+            item["sentiment_score"] = item.get("score", 0)
+            item["sentiment_label"] = item.get("label", "neutral")
+            item["confidence"] = 0.5
+
         # Entity extraction
         try:
             entities = extract_entities(text)
-            item['entities'] = entities
+            item["entities"] = entities
         except Exception as e:
             logger.warning(f"Entity extraction failed: {e}")
-            item['entities'] = {}
-        
+            item["entities"] = {}
+
         # Add timestamp if missing
-        if 'timestamp' not in item or item['timestamp'] is None:
-            item['timestamp'] = datetime.now(timezone.utc)
-    
+        if "timestamp" not in item or item["timestamp"] is None:
+            item["timestamp"] = datetime.now(timezone.utc)
+
     return items
 
 
 def store_in_warehouse(items: list, warehouse_path: str = None) -> bool:
     """
     Store processed items in DuckDB warehouse.
-    
+
     Args:
         items: Processed news items with sentiment
         warehouse_path: Optional path to warehouse database
-        
+
     Returns:
         True if successful, False otherwise
     """
     if not WAREHOUSE_AVAILABLE:
         logger.warning("Warehouse integration not available")
         return False
-    
+
     try:
         logger.info("Storing items in warehouse...")
         warehouse = get_warehouse(warehouse_path)
-        
+
         # Bulk insert news items
         count = warehouse.bulk_insert_news(items)
         logger.info(f"Stored {count} items in warehouse")
-        
+
         # Compute hourly aggregates
         agg_count = warehouse.compute_sentiment_aggregates(hours_back=24)
         logger.info(f"Computed {agg_count} sentiment aggregates")
-        
+
         # Show stats
         stats = warehouse.get_stats()
         logger.info(f"Warehouse stats: {stats}")
-        
+
         return True
-        
+
     except Exception as e:
         logger.error(f"Failed to store in warehouse: {e}")
         return False
@@ -185,24 +186,67 @@ def main():
         )
         items = report["items"]
 
+        # Normalize field names for warehouse compatibility
+        for item in items:
+            if "score" in item and "sentiment_score" not in item:
+                item["sentiment_score"] = item["score"]
+            if "label" in item and "sentiment_label" not in item:
+                item["sentiment_label"] = item["label"]
+            if "sentiment_label" not in item:
+                item["sentiment_label"] = "neutral"
+            if "sentiment_score" not in item:
+                item["sentiment_score"] = 0.0
+            # Convert timestamp
+            if "ts" in item and "timestamp" not in item:
+                import time
+                from datetime import datetime, timezone
+
+                dt = datetime.fromtimestamp(time.mktime(item["ts"]), tz=timezone.utc)
+                item["timestamp"] = dt
+            # Add missing fields with defaults
+            if "confidence" not in item:
+                item["confidence"] = 0.75  # Default confidence for rule-based
+            if "entities" not in item:
+                item["entities"] = {}
+
     # Store in warehouse if enabled
     if not args.no_warehouse and WAREHOUSE_AVAILABLE:
         store_in_warehouse(items, args.warehouse_path)
 
     # Sort by sentiment score for display
-    items_sorted = sorted(items, key=lambda x: abs(x.get('sentiment_score', 0)), reverse=True)
-    top_items = items_sorted[:args.top]
+    items_sorted = sorted(
+        items, key=lambda x: abs(x.get("sentiment_score", 0)), reverse=True
+    )
+    top_items = items_sorted[: args.top]
 
     # Format for display
     report = {
-        'items': top_items,
-        'average_score': sum(i.get('sentiment_score', 0) for i in top_items) / len(top_items) if top_items else 0,
-        'overall_label': 'risk-on' if sum(i.get('sentiment_score', 0) for i in top_items) > 0 else 'risk-off' if sum(i.get('sentiment_score', 0) for i in top_items) < 0 else 'neutral',
-        'counts': {
-            'risk-on': sum(1 for i in top_items if i.get('sentiment_label') == 'risk-on'),
-            'risk-off': sum(1 for i in top_items if i.get('sentiment_label') == 'risk-off'),
-            'neutral': sum(1 for i in top_items if i.get('sentiment_label') == 'neutral'),
-        }
+        "items": top_items,
+        "average_score": (
+            sum(i.get("sentiment_score", 0) for i in top_items) / len(top_items)
+            if top_items
+            else 0
+        ),
+        "overall_label": (
+            "risk-on"
+            if sum(i.get("sentiment_score", 0) for i in top_items) > 0
+            else (
+                "risk-off"
+                if sum(i.get("sentiment_score", 0) for i in top_items) < 0
+                else "neutral"
+            )
+        ),
+        "counts": {
+            "risk-on": sum(
+                1 for i in top_items if i.get("sentiment_label") == "risk-on"
+            ),
+            "risk-off": sum(
+                1 for i in top_items if i.get("sentiment_label") == "risk-off"
+            ),
+            "neutral": sum(
+                1 for i in top_items if i.get("sentiment_label") == "neutral"
+            ),
+        },
     }
 
     md = format_markdown(report)
