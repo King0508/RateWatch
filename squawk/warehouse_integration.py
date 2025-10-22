@@ -20,21 +20,29 @@ class WarehouseIntegration:
     def __init__(self, warehouse_path: str = None):
         """
         Initialize connection to quant warehouse.
-        
+
         Args:
             warehouse_path: Path to warehouse.duckdb file
         """
         if warehouse_path is None:
             # Default to sibling directory structure
-            warehouse_path = Path(__file__).parent.parent.parent / "quant-sql-warehouse" / "warehouse.duckdb"
-        
+            # From fixed-income-news-summarizer/squawk/warehouse_integration.py
+            # Go up to fixed-income-news-summarizer/, then to downloads/, then to quant-sql-warehouse/
+            default_path = (
+                Path(__file__).parent.parent
+                / ".."
+                / "quant-sql-warehouse"
+                / "warehouse.duckdb"
+            )
+            warehouse_path = default_path.resolve()
+
         self.warehouse_path = Path(warehouse_path)
         self.conn = None
-        
+
         if not self.warehouse_path.exists():
             logger.warning(f"Warehouse database not found at {self.warehouse_path}")
             logger.info("Will create new database when inserting data")
-        
+
         self._connect()
         self._ensure_schema()
 
@@ -51,20 +59,22 @@ class WarehouseIntegration:
         """Ensure sentiment tables exist in warehouse (skip if already exist)."""
         try:
             # Check if key tables exist
-            result = self.conn.execute("""
+            result = self.conn.execute(
+                """
                 SELECT COUNT(*) 
                 FROM information_schema.tables 
                 WHERE table_name IN ('news_sentiment', 'sentiment_aggregates', 'market_events', 'sentiment_signals')
                 AND table_schema = 'main'
-            """).fetchone()
-            
+            """
+            ).fetchone()
+
             if result and result[0] >= 4:
                 logger.info("Sentiment schema already exists in warehouse")
                 return
-            
+
             logger.info("Sentiment tables not found, will need manual initialization")
             logger.info("Run: cd quant-sql-warehouse && python init_sentiment.py")
-            
+
         except Exception as e:
             logger.error(f"Failed to check schema: {e}")
 
@@ -79,23 +89,24 @@ class WarehouseIntegration:
     def insert_news_item(self, item: Dict[str, Any]) -> int:
         """
         Insert a news item with sentiment into warehouse.
-        
+
         Args:
             item: Dictionary containing:
                 - timestamp, source, title, summary, link
                 - sentiment_score, sentiment_label, confidence
                 - entities (dict)
-                
+
         Returns:
             news_id of inserted row
         """
         try:
-            entities = item.get('entities', {})
-            
+            entities = item.get("entities", {})
+
             # Check if high-impact
             is_high_impact = self._is_high_impact(entities)
-            
-            result = self.conn.execute("""
+
+            result = self.conn.execute(
+                """
                 INSERT INTO news_sentiment (
                     timestamp, source, title, summary, link,
                     sentiment_score, sentiment_label, confidence,
@@ -103,27 +114,29 @@ class WarehouseIntegration:
                     credit_terms, yields, basis_points, is_high_impact
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING news_id
-            """, [
-                item.get('timestamp', datetime.now(timezone.utc)),
-                item['source'],
-                item['title'],
-                item.get('summary', ''),
-                item.get('link', ''),
-                item['sentiment_score'],
-                item['sentiment_label'],
-                item.get('confidence', 0.0),
-                entities.get('fed_officials', []),
-                entities.get('economic_indicators', []),
-                entities.get('treasury_instruments', []),
-                entities.get('credit_terms', []),
-                entities.get('yields', []),
-                entities.get('basis_points', []),
-                is_high_impact,
-            ]).fetchone()
-            
+            """,
+                [
+                    item.get("timestamp", datetime.now(timezone.utc)),
+                    item["source"],
+                    item["title"],
+                    item.get("summary", ""),
+                    item.get("link", ""),
+                    item["sentiment_score"],
+                    item["sentiment_label"],
+                    item.get("confidence", 0.0),
+                    entities.get("fed_officials", []),
+                    entities.get("economic_indicators", []),
+                    entities.get("treasury_instruments", []),
+                    entities.get("credit_terms", []),
+                    entities.get("yields", []),
+                    entities.get("basis_points", []),
+                    is_high_impact,
+                ],
+            ).fetchone()
+
             logger.debug(f"Inserted news item: {item['title'][:50]}...")
             return result[0] if result else None
-            
+
         except Exception as e:
             logger.error(f"Failed to insert news item: {e}")
             raise
@@ -131,10 +144,10 @@ class WarehouseIntegration:
     def bulk_insert_news(self, items: List[Dict[str, Any]]) -> int:
         """
         Bulk insert multiple news items.
-        
+
         Args:
             items: List of news item dictionaries
-            
+
         Returns:
             Number of items inserted
         """
@@ -144,35 +157,40 @@ class WarehouseIntegration:
         try:
             data = []
             for item in items:
-                entities = item.get('entities', {})
+                entities = item.get("entities", {})
                 is_high_impact = self._is_high_impact(entities)
-                
-                data.append([
-                    item.get('timestamp', datetime.now(timezone.utc)),
-                    item['source'],
-                    item['title'],
-                    item.get('summary', ''),
-                    item.get('link', ''),
-                    item['sentiment_score'],
-                    item['sentiment_label'],
-                    item.get('confidence', 0.0),
-                    entities.get('fed_officials', []),
-                    entities.get('economic_indicators', []),
-                    entities.get('treasury_instruments', []),
-                    entities.get('credit_terms', []),
-                    entities.get('yields', []),
-                    entities.get('basis_points', []),
-                    is_high_impact,
-                ])
 
-            self.conn.executemany("""
+                data.append(
+                    [
+                        item.get("timestamp", datetime.now(timezone.utc)),
+                        item["source"],
+                        item["title"],
+                        item.get("summary", ""),
+                        item.get("link", ""),
+                        item["sentiment_score"],
+                        item["sentiment_label"],
+                        item.get("confidence", 0.0),
+                        entities.get("fed_officials", []),
+                        entities.get("economic_indicators", []),
+                        entities.get("treasury_instruments", []),
+                        entities.get("credit_terms", []),
+                        entities.get("yields", []),
+                        entities.get("basis_points", []),
+                        is_high_impact,
+                    ]
+                )
+
+            self.conn.executemany(
+                """
                 INSERT INTO news_sentiment (
                     timestamp, source, title, summary, link,
                     sentiment_score, sentiment_label, confidence,
                     fed_officials, economic_indicators, treasury_instruments,
                     credit_terms, yields, basis_points, is_high_impact
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, data)
+            """,
+                data,
+            )
 
             logger.info(f"Bulk inserted {len(items)} news items to warehouse")
             return len(items)
@@ -183,14 +201,17 @@ class WarehouseIntegration:
 
     def _is_high_impact(self, entities: Dict[str, List[str]]) -> bool:
         """Determine if news is high-impact based on entities."""
-        high_impact_indicators = {'FOMC', 'CPI', 'NFP', 'PCE'}
-        high_impact_officials = {'Jerome Powell', 'Powell', 'Chair Powell'}
-        
-        has_indicator = any(ind in entities.get('economic_indicators', []) 
-                          for ind in high_impact_indicators)
-        has_official = any(off in entities.get('fed_officials', []) 
-                         for off in high_impact_officials)
-        
+        high_impact_indicators = {"FOMC", "CPI", "NFP", "PCE"}
+        high_impact_officials = {"Jerome Powell", "Powell", "Chair Powell"}
+
+        has_indicator = any(
+            ind in entities.get("economic_indicators", [])
+            for ind in high_impact_indicators
+        )
+        has_official = any(
+            off in entities.get("fed_officials", []) for off in high_impact_officials
+        )
+
         return has_indicator or has_official
 
     # === Sentiment Aggregation ===
@@ -198,10 +219,10 @@ class WarehouseIntegration:
     def compute_sentiment_aggregates(self, hours_back: int = 24) -> int:
         """
         Compute hourly sentiment aggregates from raw news data.
-        
+
         Args:
             hours_back: How far back to aggregate
-            
+
         Returns:
             Number of aggregate rows created
         """
@@ -232,12 +253,14 @@ class WarehouseIntegration:
                     )
                 GROUP BY hour
             """
-            
+
             result = self.conn.execute(query)
             # DuckDB doesn't have changes(), so we count the aggregates we just created
-            count_result = self.conn.execute("""
+            count_result = self.conn.execute(
+                """
                 SELECT COUNT(*) FROM sentiment_aggregates
-            """).fetchone()
+            """
+            ).fetchone()
             count = count_result[0] if count_result else 0
             logger.info(f"Computed sentiment aggregates (total: {count})")
             return count
@@ -248,7 +271,9 @@ class WarehouseIntegration:
 
     # === Query Helpers ===
 
-    def get_recent_news(self, hours: int = 24, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_recent_news(
+        self, hours: int = 24, limit: int = 100
+    ) -> List[Dict[str, Any]]:
         """Get recent news from warehouse."""
         try:
             query = f"""
@@ -263,7 +288,7 @@ class WarehouseIntegration:
             """
             result = self.conn.execute(query).fetchdf()
 
-            return result.to_dict('records')
+            return result.to_dict("records")
         except Exception as e:
             logger.error(f"Failed to retrieve recent news: {e}")
             return []
@@ -285,7 +310,7 @@ class WarehouseIntegration:
             """
             result = self.conn.execute(query).fetchdf()
 
-            return result.to_dict('records')
+            return result.to_dict("records")
         except Exception as e:
             logger.error(f"Failed to retrieve sentiment timeseries: {e}")
             return []
@@ -294,29 +319,30 @@ class WarehouseIntegration:
         """Get warehouse statistics."""
         try:
             stats = {}
-            
+
             # News count
             result = self.conn.execute("SELECT COUNT(*) FROM news_sentiment").fetchone()
-            stats['news_count'] = result[0] if result else 0
-            
+            stats["news_count"] = result[0] if result else 0
+
             # Date range
-            result = self.conn.execute("""
+            result = self.conn.execute(
+                """
                 SELECT MIN(timestamp), MAX(timestamp) FROM news_sentiment
-            """).fetchone()
+            """
+            ).fetchone()
             if result and result[0]:
-                stats['news_date_range'] = {
-                    'min': result[0],
-                    'max': result[1]
-                }
-            
+                stats["news_date_range"] = {"min": result[0], "max": result[1]}
+
             # High-impact count
-            result = self.conn.execute("""
+            result = self.conn.execute(
+                """
                 SELECT COUNT(*) FROM news_sentiment WHERE is_high_impact = TRUE
-            """).fetchone()
-            stats['high_impact_count'] = result[0] if result else 0
-            
+            """
+            ).fetchone()
+            stats["high_impact_count"] = result[0] if result else 0
+
             return stats
-            
+
         except Exception as e:
             logger.error(f"Failed to get stats: {e}")
             return {}
@@ -329,10 +355,10 @@ _warehouse: Optional[WarehouseIntegration] = None
 def get_warehouse(warehouse_path: str = None) -> WarehouseIntegration:
     """
     Get or create the global warehouse integration instance.
-    
+
     Args:
         warehouse_path: Optional path to warehouse.duckdb
-        
+
     Returns:
         WarehouseIntegration instance
     """
@@ -340,4 +366,3 @@ def get_warehouse(warehouse_path: str = None) -> WarehouseIntegration:
     if _warehouse is None:
         _warehouse = WarehouseIntegration(warehouse_path)
     return _warehouse
-
