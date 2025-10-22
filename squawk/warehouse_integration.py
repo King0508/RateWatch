@@ -17,13 +17,15 @@ class WarehouseIntegration:
     Manages data flow from fixed-income news summarizer to quant-sql-warehouse.
     """
 
-    def __init__(self, warehouse_path: str = None):
+    def __init__(self, warehouse_path: str = None, read_only: bool = False):
         """
         Initialize connection to quant warehouse.
 
         Args:
             warehouse_path: Path to warehouse.duckdb file
+            read_only: If True, open in read-only mode (allows multiple readers)
         """
+        self.read_only = read_only
         if warehouse_path is None:
             # Default to sibling directory structure
             # From fixed-income-news-summarizer/squawk/warehouse_integration.py
@@ -49,8 +51,12 @@ class WarehouseIntegration:
     def _connect(self):
         """Establish connection to warehouse database."""
         try:
-            self.conn = duckdb.connect(str(self.warehouse_path))
-            logger.info(f"Connected to quant warehouse: {self.warehouse_path}")
+            if self.read_only:
+                self.conn = duckdb.connect(str(self.warehouse_path), read_only=True)
+                logger.info(f"Connected to warehouse (READ-ONLY): {self.warehouse_path}")
+            else:
+                self.conn = duckdb.connect(str(self.warehouse_path))
+                logger.info(f"Connected to quant warehouse: {self.warehouse_path}")
         except Exception as e:
             logger.error(f"Failed to connect to warehouse: {e}")
             raise
