@@ -35,36 +35,491 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom CSS for dark theme (TradingView/Koyfin style)
+# Premium CSS - TradingView/Koyfin Inspired Professional Design
 st.markdown(
     """
 <style>
-    .reportview-container {
-        background: #1E1E1E;
-        color: #FFFFFF;
+    /* Import Professional Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap');
+    
+    /* Global Styles - Dark Professional Theme */
+    .stApp {
+        background: #0d1117;
+        color: #c9d1d9;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
-    .sidebar .sidebar-content {
-        background: #262626;
+    
+    /* Main content wrapper */
+    .main {
+        background: linear-gradient(180deg, rgba(13, 17, 23, 0.95) 0%, rgba(22, 27, 34, 0.98) 100%);
     }
-    h1, h2, h3 {
-        color: #FFFFFF;
+    
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #131722 0%, #1C1F2B 100%);
+        border-right: 1px solid #2A2E39;
+    }
+    
+    [data-testid="stSidebar"] .css-1d391kg {
+        padding-top: 1rem;
+    }
+    
+    /* Remove empty blocks in sidebar */
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:empty {
+        display: none !important;
+    }
+    
+    /* Compact sidebar spacing */
+    [data-testid="stSidebar"] .element-container {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Main Content Area */
+    .main .block-container {
+        padding: 2rem 3rem;
+        max-width: 1600px;
+    }
+    
+    /* Headers with Gradient Accent */
+    h1 {
         font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 2.75rem !important;
+        background: linear-gradient(135deg, #58a6ff 0%, #8957e5 50%, #bc4c91 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem !important;
+        letter-spacing: -0.03em;
+        line-height: 1.2 !important;
+        padding-top: 1rem !important;
     }
-    .stMetric {
-        background-color: #2D2D2D;
-        padding: 15px;
+    
+    /* Add subtle glow to h1 */
+    h1::after {
+        content: '';
+        display: block;
+        width: 100px;
+        height: 4px;
+        background: linear-gradient(90deg, #58a6ff 0%, #8957e5 100%);
+        margin-top: 1rem;
+        border-radius: 2px;
+        box-shadow: 0 0 20px rgba(88, 166, 255, 0.5);
+    }
+    
+    h2 {
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 1.75rem !important;
+        color: #FFFFFF;
+        margin-top: 2rem !important;
+        margin-bottom: 1rem !important;
+        border-bottom: 2px solid #2A2E39;
+        padding-bottom: 0.5rem;
+    }
+    
+    h3 {
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+        font-size: 1.25rem !important;
+        color: #B8B8B8;
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Premium Metric Cards */
+    [data-testid="stMetricValue"] {
+        font-size: 2rem !important;
+        font-weight: 600 !important;
+        font-family: 'Roboto Mono', monospace;
+        color: #FFFFFF !important;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        font-size: 0.9rem !important;
+        color: #8E8E93 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 500;
+    }
+    
+    [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #1E2433 0%, #252B3B 100%);
+        border: 1px solid #2A2E39;
+        border-radius: 12px;
+        padding: 1.5rem !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    [data-testid="stMetric"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.4);
+        border-color: #667EEA;
+    }
+    
+    /* Enhanced Button Styling */
+    .stButton > button {
+        background: linear-gradient(135deg, #58a6ff 0%, #8957e5 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.875rem 2.5rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(88, 166, 255, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stButton > button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .stButton > button:hover::before {
+        left: 100%;
+    }
+    
+    .stButton > button:hover {
+        background: linear-gradient(135deg, #6cb6ff 0%, #9d6ff2 100%);
+        box-shadow: 0 8px 24px rgba(88, 166, 255, 0.6), 0 4px 8px rgba(0, 0, 0, 0.4);
+        transform: translateY(-3px) scale(1.02);
+    }
+    
+    .stButton > button:active {
+        transform: translateY(-1px) scale(0.98);
+        box-shadow: 0 2px 8px rgba(88, 166, 255, 0.4);
+    }
+    
+    /* Checkbox Styling */
+    .stCheckbox {
+        color: #c9d1d9 !important;
+    }
+    
+    .stCheckbox > label {
+        color: #c9d1d9 !important;
+        font-weight: 500 !important;
+    }
+    
+    .stCheckbox > label > div {
+        background-color: #161b22 !important;
+        border: 1.5px solid #30363d !important;
+        border-radius: 6px !important;
+    }
+    
+    .stCheckbox > label > div[data-checked="true"] {
+        background-color: #58a6ff !important;
+        border-color: #58a6ff !important;
+    }
+    
+    /* Radio Buttons - Sidebar Navigation */
+    .stRadio > label {
+        color: #c9d1d9 !important;
+        font-weight: 600 !important;
+        margin-bottom: 0.75rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        font-size: 0.85rem !important;
+        display: none !important; /* Hide default label since we're using custom markdown */
+    }
+    
+    .stRadio > div {
+        gap: 0.25rem !important;
+    }
+    
+    .stRadio > div > label {
+        background: transparent !important;
+        border-radius: 8px !important;
+        padding: 0.65rem 0.85rem !important;
+        transition: all 0.2s ease !important;
+        cursor: pointer !important;
+        border: 1px solid transparent !important;
+        font-size: 0.9rem !important;
+        white-space: nowrap !important;
+    }
+    
+    .stRadio > div > label:hover {
+        background: rgba(88, 166, 255, 0.1) !important;
+        border-color: rgba(88, 166, 255, 0.3) !important;
+    }
+    
+    .stRadio > div > label[data-checked="true"] {
+        background: linear-gradient(135deg, rgba(88, 166, 255, 0.15) 0%, rgba(137, 87, 229, 0.15) 100%) !important;
+        border: 1px solid rgba(88, 166, 255, 0.5) !important;
+        box-shadow: 0 2px 8px rgba(88, 166, 255, 0.3) !important;
+    }
+    
+    [data-testid="stMarkdownContainer"] label {
+        color: #c9d1d9 !important;
+    }
+    
+    /* Premium Card Containers */
+    [data-testid="stVerticalBlock"] > div {
+        background: rgba(30, 36, 51, 0.5);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #2A2E39;
+        backdrop-filter: blur(10px);
+    }
+    
+    /* Data Tables */
+    .dataframe {
+        background-color: #1E2433 !important;
+        border: 1px solid #2A2E39 !important;
         border-radius: 8px;
+        color: #E0E0E0 !important;
     }
+    
+    .dataframe th {
+        background: linear-gradient(135deg, #252B3B 0%, #1E2433 100%) !important;
+        color: #FFFFFF !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+        padding: 1rem !important;
+        border-bottom: 2px solid #667EEA !important;
+    }
+    
+    .dataframe td {
+        border-color: #2A2E39 !important;
+        padding: 0.75rem !important;
+        color: #E0E0E0 !important;
+    }
+    
+    /* Sentiment Color Classes */
     .risk-on {
-        color: #00C853;
-        font-weight: bold;
+        color: #00E676 !important;
+        font-weight: 600;
+        text-shadow: 0 0 10px rgba(0, 230, 118, 0.5);
     }
+    
     .risk-off {
-        color: #FF1744;
-        font-weight: bold;
+        color: #FF5252 !important;
+        font-weight: 600;
+        text-shadow: 0 0 10px rgba(255, 82, 82, 0.5);
     }
+    
     .neutral {
-        color: #FFB300;
+        color: #FFD740 !important;
+        font-weight: 600;
+    }
+    
+    /* Input Fields */
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div,
+    .stNumberInput > div > div > input {
+        background: linear-gradient(135deg, #161b22 0%, #1c2128 100%) !important;
+        border: 1.5px solid #30363d !important;
+        border-radius: 10px !important;
+        color: #c9d1d9 !important;
+        padding: 0.875rem 1rem !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.95rem !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    .stSelectbox > div > div {
+        padding: 0 !important;
+    }
+    
+    .stSelectbox select {
+        background: transparent !important;
+        padding: 0.875rem 1rem !important;
+        color: #c9d1d9 !important;
+        font-weight: 500 !important;
+    }
+    
+    .stTextInput > div > div > input:hover,
+    .stSelectbox > div > div:hover,
+    .stNumberInput > div > div > input:hover {
+        border-color: #58a6ff !important;
+        box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.3) !important;
+    }
+    
+    .stTextInput > div > div > input:focus,
+    .stSelectbox > div > div:focus-within,
+    .stNumberInput > div > div > input:focus {
+        border-color: #58a6ff !important;
+        box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.25) !important;
+        background: #1c2128 !important;
+    }
+    
+    /* Input labels */
+    .stTextInput > label,
+    .stSelectbox > label,
+    .stNumberInput > label {
+        color: #8b949e !important;
+        font-weight: 500 !important;
+        font-size: 0.9rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Info/Warning/Error Boxes */
+    .stAlert {
+        background: linear-gradient(135deg, rgba(88, 166, 255, 0.08) 0%, rgba(137, 87, 229, 0.08) 100%) !important;
+        border: 1px solid rgba(88, 166, 255, 0.3) !important;
+        border-radius: 12px !important;
+        color: #c9d1d9 !important;
+        padding: 1.5rem !important;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Specific alert types */
+    .stAlert[data-baseweb="notification"] {
+        font-size: 1rem !important;
+    }
+    
+    /* Info alerts */
+    div[data-baseweb="notification"] > div {
+        background: transparent !important;
+    }
+    
+    /* Expander */
+    .streamlit-expanderHeader {
+        background: linear-gradient(135deg, #1E2433 0%, #252B3B 100%) !important;
+        border: 1px solid #2A2E39 !important;
+        border-radius: 8px !important;
+        color: #FFFFFF !important;
+        font-weight: 500;
+    }
+    
+    .streamlit-expanderHeader:hover {
+        border-color: #667EEA !important;
+    }
+    
+    /* Divider */
+    hr {
+        border-color: #2A2E39 !important;
+        margin: 2rem 0 !important;
+    }
+    
+    /* Code Blocks */
+    code {
+        background-color: #1E2433 !important;
+        color: #00E676 !important;
+        padding: 0.2rem 0.5rem !important;
+        border-radius: 4px !important;
+        font-family: 'Roboto Mono', monospace !important;
+        font-size: 0.9rem !important;
+    }
+    
+    pre {
+        background-color: #131722 !important;
+        border: 1px solid #2A2E39 !important;
+        border-radius: 8px !important;
+        padding: 1rem !important;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #131722;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+        border-radius: 5px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #764BA2 0%, #667EEA 100%);
+    }
+    
+    /* Loading Spinner */
+    .stSpinner > div {
+        border-color: #667EEA !important;
+    }
+    
+    /* Caption Text */
+    .css-1kyxreq {
+        color: #8E8E93 !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* Badge/Pill Style for Tags */
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin: 0.25rem;
+        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+        color: white;
+    }
+    
+    /* Chart Container */
+    .js-plotly-plot {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    /* News Card Styling */
+    .news-card {
+        background: linear-gradient(135deg, #1E2433 0%, #252B3B 100%);
+        border: 1px solid #2A2E39;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .news-card:hover {
+        border-color: #667EEA;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        transform: translateX(5px);
+    }
+    
+    /* Status Indicators */
+    .status-online {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background: #00E676;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+        box-shadow: 0 0 10px rgba(0, 230, 118, 0.6);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .status-offline {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background: #FF5252;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+    
+    /* Glassmorphism Effect for Special Cards */
+    .glass-card {
+        background: rgba(30, 36, 51, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 </style>
 """,
@@ -94,34 +549,168 @@ def init_warehouse():
     return None
 
 
-# Sidebar navigation
-st.sidebar.title("📊 Navigation")
+# Sidebar navigation with premium branding
+st.sidebar.markdown(
+    """
+<div style="text-align: center; padding: 1.5rem 0; margin-bottom: 2rem; border-bottom: 1px solid #30363d;">
+    <h1 style="
+        font-size: 1.6rem; 
+        font-weight: 700;
+        background: linear-gradient(135deg, #58a6ff 0%, #8957e5 50%, #bc4c91 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+        letter-spacing: -0.01em;
+        margin-bottom: 0.5rem;
+    ">FIXED INCOME</h1>
+    <p style="
+        color: #8b949e;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        margin: 0;
+        font-weight: 500;
+    ">Sentiment Analytics Platform</p>
+</div>
+""",
+    unsafe_allow_html=True,
+)
+
+st.sidebar.markdown(
+    """
+<h2 style="
+    color: #c9d1d9;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.85rem;
+">📊 Navigation</h2>
+""",
+    unsafe_allow_html=True,
+)
+
 page = st.sidebar.radio(
     "Select Page",
     ["Live Feed", "Analytics", "Event Studies", "Backtest Results", "Settings"],
+    label_visibility="collapsed",
 )
 
 # Initialize warehouse
 warehouse = init_warehouse()
 
+# Sidebar status indicator
+st.sidebar.markdown("---")
+if warehouse:
+    st.sidebar.markdown(
+        """
+    <div style="display: flex; align-items: center; padding: 0.75rem; background: linear-gradient(135deg, rgba(0, 230, 118, 0.1) 0%, rgba(0, 230, 118, 0.05) 100%); border-radius: 8px; border: 1px solid rgba(0, 230, 118, 0.3);">
+        <span class="status-online"></span>
+        <div>
+            <div style="font-weight: 600; color: #00E676; font-size: 0.9rem;">System Online</div>
+            <div style="font-size: 0.75rem; color: #8E8E93;">Warehouse Connected</div>
+        </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+else:
+    st.sidebar.markdown(
+        """
+    <div style="display: flex; align-items: center; padding: 0.75rem; background: linear-gradient(135deg, rgba(255, 82, 82, 0.1) 0%, rgba(255, 82, 82, 0.05) 100%); border-radius: 8px; border: 1px solid rgba(255, 82, 82, 0.3);">
+        <span class="status-offline"></span>
+        <div>
+            <div style="font-weight: 600; color: #FF5252; font-size: 0.9rem;">System Offline</div>
+            <div style="font-size: 0.75rem; color: #8E8E93;">Warehouse Disconnected</div>
+        </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
 
 # Helper functions
 def get_sentiment_color(label):
-    """Get color for sentiment label."""
-    colors = {"risk-on": "#00C853", "risk-off": "#FF1744", "neutral": "#FFB300"}
+    """Get color for sentiment label - Premium TradingView Colors."""
+    colors = {
+        "risk-on": "#00E676",  # Brighter green with glow
+        "risk-off": "#FF5252",  # Vibrant red
+        "neutral": "#FFD740",  # Golden yellow
+    }
     return colors.get(label, "#FFFFFF")
 
 
 def format_sentiment_label(label):
     """Format sentiment label with HTML styling."""
     color = get_sentiment_color(label)
-    return f'<span style="color: {color}; font-weight: bold;">{label.upper()}</span>'
+    return f'<span class="{label}" style="color: {color}; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">{label}</span>'
+
+
+def get_premium_chart_layout():
+    """Get premium dark theme layout for Plotly charts - Modern GitHub Style."""
+    return dict(
+        template="plotly_dark",
+        paper_bgcolor="#0d1117",
+        plot_bgcolor="#161b22",
+        font=dict(
+            family="Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+            size=13,
+            color="#c9d1d9",
+        ),
+        title_font=dict(
+            family="Inter, sans-serif", size=18, color="#f0f6fc", weight=600
+        ),
+        xaxis=dict(
+            gridcolor="#21262d",
+            linecolor="#30363d",
+            zerolinecolor="#30363d",
+            tickfont=dict(color="#8b949e", size=11),
+            showgrid=True,
+            gridwidth=1,
+        ),
+        yaxis=dict(
+            gridcolor="#21262d",
+            linecolor="#30363d",
+            zerolinecolor="#30363d",
+            tickfont=dict(color="#8b949e", size=11),
+            showgrid=True,
+            gridwidth=1,
+        ),
+        hovermode="x unified",
+        hoverlabel=dict(
+            bgcolor="#161b22",
+            font_size=13,
+            font_family="Inter, sans-serif",
+            bordercolor="#58a6ff",
+            font_color="#f0f6fc",
+        ),
+        margin=dict(l=70, r=40, t=70, b=60),
+        legend=dict(
+            bgcolor="rgba(22, 27, 34, 0.95)",
+            bordercolor="#30363d",
+            borderwidth=1,
+            font=dict(color="#c9d1d9", size=12),
+        ),
+    )
 
 
 # PAGE 1: LIVE FEED
 if page == "Live Feed":
     st.title("📰 Live Sentiment Feed")
-    st.markdown("Real-time fixed-income news with ML-based sentiment analysis")
+    st.markdown(
+        """
+    <p style="
+        font-size: 1.05rem;
+        color: #8b949e;
+        margin-top: -0.5rem;
+        margin-bottom: 2rem;
+        font-weight: 400;
+    ">Real-time fixed-income news with ML-based sentiment analysis</p>
+    """,
+        unsafe_allow_html=True,
+    )
 
     # Filters
     col1, col2, col3 = st.columns(3)
@@ -217,7 +806,18 @@ if page == "Live Feed":
 # PAGE 2: ANALYTICS
 elif page == "Analytics":
     st.title("📈 Sentiment Analytics")
-    st.markdown("Correlation analysis and market impact")
+    st.markdown(
+        """
+    <p style="
+        font-size: 1.05rem;
+        color: #8b949e;
+        margin-top: -0.5rem;
+        margin-bottom: 2rem;
+        font-weight: 400;
+    ">Advanced correlation analysis and market impact metrics</p>
+    """,
+        unsafe_allow_html=True,
+    )
 
     if warehouse and DIRECT_DB_ACCESS:
         try:
@@ -234,31 +834,47 @@ elif page == "Analytics":
 
                 fig = go.Figure()
 
-                # Add sentiment line
+                # Add sentiment line with premium styling
                 fig.add_trace(
                     go.Scatter(
                         x=df["hour_timestamp"],
                         y=df["avg_sentiment"],
-                        mode="lines",
+                        mode="lines+markers",
                         name="Avg Sentiment",
-                        line=dict(color="#00BCD4", width=2),
+                        line=dict(
+                            color="#58a6ff", width=3, shape="spline"  # Smooth curves
+                        ),
+                        marker=dict(
+                            color="#58a6ff", size=8, line=dict(color="#0d1117", width=2)
+                        ),
                         fill="tozeroy",
-                        fillcolor="rgba(0, 188, 212, 0.1)",
+                        fillcolor="rgba(88, 166, 255, 0.12)",
+                        hovertemplate="<b>%{x|%Y-%m-%d %H:%M}</b><br>Sentiment: %{y:.3f}<extra></extra>",
                     )
                 )
 
                 # Add zero line
-                fig.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
+                fig.add_hline(
+                    y=0,
+                    line_dash="dash",
+                    line_color="#8E8E93",
+                    opacity=0.3,
+                    annotation_text="Neutral",
+                    annotation_font_size=10,
+                    annotation_font_color="#8E8E93",
+                )
 
-                fig.update_layout(
-                    template="plotly_dark",
-                    height=400,
+                # Apply premium layout
+                layout = get_premium_chart_layout()
+                layout.update(
+                    height=450,
                     xaxis_title="Time",
                     yaxis_title="Sentiment Score",
-                    hovermode="x unified",
-                    plot_bgcolor="#1E1E1E",
-                    paper_bgcolor="#1E1E1E",
+                    title=dict(
+                        text="", font=dict(size=0)
+                    ),  # Using Streamlit's subheader instead
                 )
+                fig.update_layout(**layout)
 
                 st.plotly_chart(fig, use_container_width=True)
 
@@ -273,19 +889,24 @@ elif page == "Analytics":
                         go.Histogram(
                             x=df["avg_sentiment"],
                             nbinsx=30,
-                            marker_color="#00BCD4",
-                            opacity=0.75,
+                            marker=dict(
+                                color="#58a6ff",
+                                line=dict(color="#8957e5", width=1.5),
+                                opacity=0.9,
+                            ),
+                            hovertemplate="Sentiment: %{x:.3f}<br>Count: %{y}<extra></extra>",
                         )
                     )
 
-                    fig_dist.update_layout(
-                        template="plotly_dark",
-                        height=300,
+                    # Apply premium layout
+                    layout = get_premium_chart_layout()
+                    layout.update(
+                        height=350,
                         xaxis_title="Sentiment Score",
                         yaxis_title="Frequency",
-                        plot_bgcolor="#1E1E1E",
-                        paper_bgcolor="#1E1E1E",
+                        showlegend=False,
                     )
+                    fig_dist.update_layout(**layout)
 
                     st.plotly_chart(fig_dist, use_container_width=True)
 
@@ -302,18 +923,32 @@ elif page == "Analytics":
                             go.Pie(
                                 labels=["Risk-On", "Risk-Off", "Neutral"],
                                 values=[total_risk_on, total_risk_off, total_neutral],
-                                marker=dict(colors=["#00C853", "#FF1744", "#FFB300"]),
-                                hole=0.4,
+                                marker=dict(
+                                    colors=["#00E676", "#FF5252", "#FFD740"],
+                                    line=dict(color="#131722", width=2),
+                                ),
+                                hole=0.5,
+                                textposition="outside",
+                                textinfo="label+percent",
+                                hovertemplate="<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>",
                             )
                         ]
                     )
 
-                    fig_pie.update_layout(
-                        template="plotly_dark",
-                        height=300,
-                        plot_bgcolor="#1E1E1E",
-                        paper_bgcolor="#1E1E1E",
+                    # Apply premium layout
+                    layout = get_premium_chart_layout()
+                    layout.update(
+                        height=350,
+                        showlegend=True,
+                        legend=dict(
+                            orientation="h",
+                            yanchor="bottom",
+                            y=-0.2,
+                            xanchor="center",
+                            x=0.5,
+                        ),
                     )
+                    fig_pie.update_layout(**layout)
 
                     st.plotly_chart(fig_pie, use_container_width=True)
 
@@ -562,7 +1197,3 @@ elif page == "Settings":
 # Footer
 st.sidebar.markdown("---")
 st.sidebar.caption("Fixed Income Sentiment Analytics v2.0")
-if warehouse:
-    st.sidebar.caption("🟢 Connected to Warehouse")
-else:
-    st.sidebar.caption("🔴 Warehouse Offline")
