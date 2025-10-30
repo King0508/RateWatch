@@ -64,6 +64,27 @@ st.markdown(
         padding-top: 1rem;
     }
     
+    /* Remove ALL empty blocks everywhere */
+    div:empty {
+        display: none !important;
+    }
+    
+    [data-testid="stVerticalBlock"]:empty {
+        display: none !important;
+    }
+    
+    [data-testid="stVerticalBlock"] > div:empty {
+        display: none !important;
+    }
+    
+    [data-testid="stHorizontalBlock"]:empty {
+        display: none !important;
+    }
+    
+    .element-container:empty {
+        display: none !important;
+    }
+    
     /* Remove empty blocks in sidebar */
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:empty {
         display: none !important;
@@ -72,6 +93,35 @@ st.markdown(
     /* Compact sidebar spacing */
     [data-testid="stSidebar"] .element-container {
         margin-bottom: 0.5rem !important;
+    }
+    
+    /* Hide Streamlit's default empty spacing blocks */
+    .stMarkdown:empty {
+        display: none !important;
+    }
+    
+    [data-testid="stMarkdownContainer"]:empty {
+        display: none !important;
+    }
+    
+    /* Aggressively hide any empty containers that create visual blocks */
+    [data-testid="column"]:empty {
+        display: none !important;
+    }
+    
+    [data-testid="stVerticalBlock"] > [style*="gap"] > div:empty {
+        display: none !important;
+    }
+    
+    /* Remove default Streamlit spacing that creates empty blocks */
+    .row-widget.stRadio > div {
+        gap: 0 !important;
+    }
+    
+    /* Minimize spacing around subheaders in Settings */
+    h3 {
+        margin-top: 1.5rem !important;
+        margin-bottom: 0.75rem !important;
     }
     
     /* Main Content Area */
@@ -601,8 +651,7 @@ page = st.sidebar.radio(
 # Initialize warehouse
 warehouse = init_warehouse()
 
-# Sidebar status indicator
-st.sidebar.markdown("---")
+# Sidebar status indicator (no divider to avoid empty block)
 if warehouse:
     st.sidebar.markdown(
         """
@@ -745,7 +794,9 @@ if page == "Live Feed":
                 col3.metric("Risk-Off", risk_off, delta=None, delta_color="inverse")
                 col4.metric("Avg Sentiment", f"{avg_sentiment:.3f}")
 
-                st.markdown("---")
+                st.markdown(
+                    "<div style='height: 1.5rem;'></div>", unsafe_allow_html=True
+                )
 
                 # Display news items
                 for item in news_data:
@@ -791,7 +842,11 @@ if page == "Live Feed":
                         if entities:
                             st.caption(" | ".join(entities[:5]))
 
-                        st.markdown("---")
+                        # Subtle separator (not a full divider)
+                        st.markdown(
+                            "<div style='border-bottom: 1px solid #21262d; margin: 1.5rem 0;'></div>",
+                            unsafe_allow_html=True,
+                        )
             else:
                 st.info("No news articles found for the selected time range.")
 
@@ -1167,14 +1222,14 @@ elif page == "Settings":
         st.warning("❌ Not connected to warehouse")
         st.info("Ensure warehouse.duckdb exists in quant-sql-warehouse directory")
 
-    st.markdown("---")
+    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
 
     st.subheader("Data Collection")
     st.info("Run the news summarizer to collect and process fixed-income news")
 
     st.code("python -m squawk.main --hours 24 --top 50", language="bash")
 
-    st.markdown("---")
+    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
 
     st.subheader("About")
     st.markdown(
@@ -1194,6 +1249,14 @@ elif page == "Settings":
     )
 
 
-# Footer
-st.sidebar.markdown("---")
-st.sidebar.caption("Fixed Income Sentiment Analytics v2.0")
+# Footer (compact)
+st.sidebar.markdown(
+    """
+    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #30363d;">
+        <p style="color: #8b949e; font-size: 0.75rem; text-align: center; margin: 0;">
+            Fixed Income Sentiment Analytics v2.0
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)

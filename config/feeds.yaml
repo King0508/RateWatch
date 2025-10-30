@@ -1,0 +1,57 @@
+# RateWatch News Feed Configuration
+
+feeds:
+  - https://www.reuters.com/markets/rss
+  - https://www.federalreserve.gov/feeds/press_all.xml
+  - https://www.bls.gov/feed/news.rss
+  - https://www.treasury.gov/resource-center/presscenter/press-releases/Pages/rss.aspx
+
+keywords:
+  must_have_any:
+    - treasury
+    - yield
+    - curve
+    - fed
+    - federal reserve
+    - inflation
+    - cpi
+    - pce
+    - payrolls
+    - employment
+    - ism
+    - credit
+    - spread
+    - downgrade
+    - default
+    - mortgage
+    - rates
+    - auction
+    - bond
+    - fomc
+
+stop_words:
+  - celebrity
+  - sports
+  - entertainment
+  - fashion
+  - lifestyle
+
+sentiment_mappings:
+  bullish_terms:
+    - rally
+    - beat
+    - easing
+    - strong
+    - tightens_spreads
+    - disinflation
+    - dovish
+  bearish_terms:
+    - selloff
+    - slump
+    - spike
+    - surge
+    - downgrade
+    - default
+    - sticky_inflation
+    - hawkish
+

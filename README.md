@@ -1,281 +1,211 @@
-# Fixed Income Sentiment Analytics Platform
+# RateWatch
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+**Real-time Sentiment-Market Correlation Analytics for Fixed Income**
 
-A production-grade analytics platform combining **ML-based sentiment analysis** of fixed-income news with **quantitative market data** to generate actionable trading insights. Integrated with a DuckDB data warehouse for scalable analytics.
+A modern, self-contained web application that analyzes correlations between financial news sentiment and Treasury market movements using ML-powered sentiment analysis.
 
-## 🌟 Key Features
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-### ML/NLP Capabilities
-- **FinBERT Sentiment Analysis**: State-of-the-art transformer model fine-tuned for financial text
-- **Named Entity Recognition**: Extracts Fed officials, economic indicators, Treasury instruments
-- **Confidence Scoring**: ML model confidence for each prediction
-- **High-Impact Detection**: Automated flagging of market-moving news
+![RateWatch Dashboard](ratewatch.png)
 
-### Data Engineering
-- **DuckDB Integration**: Fast analytical queries on combined news + market data
-- **ETL Pipeline**: Automated news fetching, processing, and warehouse storage
-- **Market Data Fetching**: Treasury yields (FRED API) and ETFs (Yahoo Finance)
-- **Time-Series Aggregation**: Hourly sentiment metrics for trend analysis
+## 🌟 Features
 
-### Quantitative Analytics
-- **Lead-Lag Correlations**: How sentiment predicts yield movements (1h, 4h, 24h lags)
-- **Event Studies**: Measure abnormal market moves around high-sentiment news
-- **Trading Signals**: Sentiment-based signals for TLT (Treasury Bond ETF)
-- **Backtesting Framework**: Sharpe ratio, win rate, max drawdown, profit factor
+### Core Capabilities
+- **ML Sentiment Analysis**: FinBERT transformer model for financial news sentiment
+- **Real-time News Monitoring**: Automated RSS feed collection from major financial sources
+- **Entity Extraction**: Identifies Fed officials, economic indicators, and Treasury instruments
+- **Correlation Analysis**: Statistical analysis of sentiment vs. yield movements
+- **Modern UI**: Beautiful Next.js dashboard with dark mode support
+- **Self-Contained**: No external database dependencies
 
-### Visualization & API
-- **Streamlit Dashboard**: Interactive TradingView/Koyfin-style interface
-- **FastAPI Backend**: RESTful endpoints for all analytics
-- **Real-Time Feed**: Live sentiment monitoring with entity tags
-- **Performance Metrics**: Comprehensive backtest visualization
+### Technical Stack
+- **Backend**: FastAPI (Python) with DuckDB
+- **Frontend**: Next.js 14 (React, TypeScript, TailwindCSS)
+- **ML/NLP**: FinBERT, PyTorch, Transformers
+- **Analytics**: Pandas, NumPy, SciPy
+- **Charting**: Recharts
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-```bash
-# Python 3.9 or higher
-python --version
-
-# Optional: FRED API key for Treasury data
-# Get free key at: https://fred.stlouisfed.org/docs/api/api_key.html
-```
+- Python 3.9+
+- Node.js 18+
+- npm or yarn
 
 ### Installation
 
+1. **Clone the repository**
 ```bash
-# Clone the repository
 git clone <your-repo-url>
-cd fixed-income-news-summarizer
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Download spaCy model (optional, for enhanced NER)
-python -m spacy download en_core_web_sm
+cd RateWatch
 ```
 
-### Configuration
-
-Create a `.env` file or set environment variables:
+2. **Set up the backend**
 ```bash
-# Optional: For Treasury yield data
-FRED_API_KEY=your_fred_api_key_here
+# Install Python dependencies
+pip install -r backend/requirements.txt
 
-# Warehouse location (defaults to ../quant-sql-warehouse/warehouse.duckdb)
-WAREHOUSE_DB_PATH=path/to/warehouse.duckdb
+# Optional: Set up environment variables
+cp .env.example .env
+# Edit .env to add your FRED API key (optional but recommended)
 ```
 
-### Run News Collection & Analysis
-
+3. **Set up the frontend**
 ```bash
-# Collect and analyze news (last 24 hours)
-python -m squawk.main --hours 24 --top 50
-
-# Output to console with sentiment analysis
-# Data automatically stored in warehouse
+cd frontend
+npm install
+cd ..
 ```
 
-### Launch Dashboard
+### Running the Application
 
+**Option 1: Run both services (recommended)**
+
+In terminal 1 (Backend):
 ```bash
-# Start the interactive dashboard
-streamlit run dashboard/app.py
-
-# Opens at http://localhost:8501
+python -m backend.main
 ```
 
-### Start API Server
-
+In terminal 2 (Frontend):
 ```bash
-# Navigate to quant-sql-warehouse and start API
-cd ../quant-sql-warehouse
-python -m api.main
-
-# API docs at http://localhost:8000/docs
-# Includes both market data AND sentiment endpoints
+cd frontend
+npm run dev
 ```
 
-## 📊 Architecture
+**Option 2: Development scripts**
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Data Sources                                  │
-│  Reuters │ Fed  │ BLS │ Treasury │ FRED API │ Yahoo Finance     │
-└────┬──────────────────────────────────────────────────────┬─────┘
-     │                                                        │
-     ▼                                                        ▼
-┌─────────────────────┐                        ┌─────────────────────┐
-│  News Summarizer    │                        │  Market Data        │
-│  ├─ RSS Fetching    │                        │  Fetcher            │
-│  ├─ FinBERT ML      │                        │  ├─ Treasury Yields │
-│  ├─ Entity Extract  │                        │  └─ ETF Prices      │
-│  └─ Sentiment Score │                        └──────────┬──────────┘
-└──────────┬──────────┘                                   │
-           │                                              │
-           └──────────────┬───────────────────────────────┘
-                          ▼
-              ┌───────────────────────┐
-              │  DuckDB Warehouse     │
-              │  (quant-sql-warehouse)│
-              │  ├─ news_sentiment    │
-              │  ├─ market_data       │
-              │  ├─ sentiment_aggs    │
-              │  └─ signals           │
-              └──────────┬────────────┘
-                         │
-         ┌───────────────┼───────────────┐
-         ▼               ▼               ▼
-┌────────────────┐  ┌──────────┐  ┌────────────────┐
-│   Analytics    │  │ FastAPI  │  │   Dashboard    │
-│ ├─Correlations │  │ REST API │  │   (Streamlit)  │
-│ ├─Event Studies│  │          │  │                │
-│ └─Backtesting  │  │ /sentiment│  │ ├─ Live Feed   │
-└────────────────┘  │ /analytics│  │ ├─ Analytics   │
-                    └──────────┘  │ ├─ Events       │
-                                  │ └─ Backtest     │
-                                  └────────────────┘
-```
+Create these helper scripts for easier development:
 
-## 📁 Project Structure
-
-```
-fixed-income-news-summarizer/
-├── squawk/                      # Core news analysis
-│   ├── main.py                  # CLI entry point
-│   ├── summarizer.py            # RSS fetching & filtering
-│   ├── ml_sentiment.py          # FinBERT sentiment analysis
-│   ├── entity_extraction.py    # NER for financial entities
-│   ├── market_data.py           # FRED/Yahoo data fetching
-│   └── warehouse_integration.py # DuckDB connection layer
-│
-├── analytics/                   # Quantitative analysis
-│   ├── correlations.py          # Lead-lag correlation analysis
-│   ├── event_studies.py         # Event impact measurement
-│   └── signals.py               # Signal generation & backtesting
-│
-├── dashboard/                   # Streamlit UI
-│   └── app.py                   # Interactive dashboard
-│
-├── database/                    # Local schema (deprecated, moved to warehouse)
-│   └── schema.sql               # Original standalone schema
-│
-├── config.yaml                  # News sources & keywords
-└── requirements.txt             # Python dependencies
-
-../quant-sql-warehouse/          # Integrated data warehouse
-├── sql/
-│   ├── schema.sql               # Market data tables
-│   └── sentiment_schema.sql     # Sentiment extension tables
-├── api/
-│   ├── main.py                  # Extended with sentiment routes
-│   └── sentiment_api.py         # Sentiment endpoints
-└── warehouse.duckdb             # Unified database
-```
-
-## 💡 Usage Examples
-
-### 1. Collect News with ML Sentiment
-
-```python
-from squawk.summarizer import fetch_items, filter_keywords
-from squawk.ml_sentiment import sentiment_score_ml
-from squawk.entity_extraction import extract_entities
-from squawk.warehouse_integration import get_warehouse
-
-# Fetch news
-items = fetch_items(['https://www.reuters.com/markets/rss'])
-
-# Analyze sentiment
-for item in items:
-    score, label, confidence = sentiment_score_ml(f"{item['title']} {item['summary']}")
-    item['sentiment_score'] = score
-    item['sentiment_label'] = label
-    item['confidence'] = confidence
-    item['entities'] = extract_entities(f"{item['title']} {item['summary']}")
-
-# Store in warehouse
-warehouse = get_warehouse()
-warehouse.bulk_insert_news(items)
-warehouse.compute_sentiment_aggregates(hours_back=24)
-```
-
-### 2. Run Correlation Analysis
-
-```python
-from analytics.correlations import CorrelationAnalyzer
-from squawk.warehouse_integration import get_warehouse
-
-warehouse = get_warehouse()
-analyzer = CorrelationAnalyzer(warehouse)
-
-# Analyze sentiment vs 10Y yields
-results = analyzer.run_full_analysis(
-    instrument='US10Y',
-    lookback_days=90
-)
-
-print(f"Best lag: {results['summary']['best_lag']}")
-# Example output: "4h lag shows correlation of 0.245 (p=0.0023)"
-```
-
-### 3. Backtest Trading Signals
-
-```python
-from analytics.signals import Backtester
-from squawk.warehouse_integration import get_warehouse
-
-warehouse = get_warehouse()
-backtester = Backtester(warehouse)
-
-results = backtester.run_full_backtest(
-    lookback_days=60,
-    instrument='TLT',
-    sentiment_threshold=0.3,
-    holding_hours=24
-)
-
-print(f"Win Rate: {results['overall_performance']['win_rate_pct']:.1f}%")
-print(f"Sharpe Ratio: {results['overall_performance']['sharpe_ratio']:.2f}")
-print(f"Total P&L: ${results['overall_performance']['total_pnl']:.2f}")
-```
-
-### 4. Query via API
-
+`start-backend.bat` (Windows) or `start-backend.sh` (Mac/Linux):
 ```bash
-# Get recent high-impact news
-curl http://localhost:8000/sentiment/recent?high_impact_only=true&limit=10
-
-# Get sentiment time series
-curl http://localhost:8000/sentiment/timeseries?hours=168
-
-# Get signal performance
-curl http://localhost:8000/sentiment/signals/performance
-
-# Search news by keyword
-curl "http://localhost:8000/sentiment/search?keyword=powell&days=30"
+python -m backend.main
 ```
 
-## 📈 Key Findings (Example)
+`start-frontend.bat` (Windows) or `start-frontend.sh` (Mac/Linux):
+```bash
+cd frontend && npm run dev
+```
 
-Based on 90-day analysis (results will vary with your data):
+### First Run
 
-- **Sentiment-Yield Correlation**: 4-hour lag shows ~0.24 correlation (p<0.05)
-- **Event Impact**: High-impact news causes avg 8.5bps yield movement
-- **Trading Signals**: 58% win rate, 1.3 Sharpe ratio on TLT signals
-- **Best Strategy**: Aggregate 4h sentiment → 24h hold → 2.4% avg return
+1. **Start the backend** (http://localhost:8000)
+2. **Start the frontend** (http://localhost:3000)
+3. **Open your browser** to http://localhost:3000
+4. **Click "Refresh Data"** to collect initial news and sentiment data
+5. **Wait 2-3 minutes** for the ML model to process news (first run downloads FinBERT model ~500MB)
+6. **Explore the dashboard** to view sentiment analysis and correlations
 
-## 🔧 Advanced Configuration
+## 📊 Usage
 
-### config.yaml
+### Dashboard Page
+- View recent sentiment-analyzed news articles
+- See overall metrics (total articles, high-impact news, avg sentiment)
+- Monitor sentiment trends over time
+- Refresh data to fetch latest news
 
+### Analytics Page
+- Correlation analysis between sentiment and 10Y Treasury yields
+- Statistical significance testing (p-values)
+- Configurable lookback periods (7, 14, 30, 60, 90 days)
+- Understanding of sentiment-market relationships
+
+### Market Data Page
+- Treasury yield curve visualization (2Y, 5Y, 10Y, 30Y)
+- Historical yield data
+- Latest yield levels
+
+## 🏗️ Architecture
+
+### Project Structure
+```
+RateWatch/
+├── backend/
+│   ├── api/                    # FastAPI routes
+│   │   ├── news.py            # News & sentiment endpoints
+│   │   ├── market.py          # Market data endpoints
+│   │   ├── analytics.py       # Correlation analytics
+│   │   └── data.py            # Data management
+│   ├── database/
+│   │   ├── schema.sql         # Database schema
+│   │   └── local_db.py        # DuckDB integration
+│   ├── models/                # Pydantic models
+│   ├── services/              # Business logic
+│   │   ├── ml_sentiment.py    # FinBERT sentiment
+│   │   ├── entity_extraction.py
+│   │   ├── news_collector.py  # RSS feed collection
+│   │   ├── news_processor.py  # Integrated processing
+│   │   ├── analytics_service.py
+│   │   └── market_data.py
+│   └── main.py                # FastAPI application
+├── frontend/
+│   ├── app/                   # Next.js 14 app router
+│   │   ├── page.tsx          # Dashboard
+│   │   ├── analytics/        # Analytics page
+│   │   └── market/           # Market data page
+│   ├── components/           # React components
+│   │   ├── SentimentCard.tsx
+│   │   ├── MetricsPanel.tsx
+│   │   ├── TimeSeriesChart.tsx
+│   │   └── ...
+│   └── lib/                  # API client & utilities
+├── data/                     # Local data storage
+│   └── ratewatch.db         # DuckDB database
+└── config/
+    └── feeds.yaml           # RSS feed configuration
+```
+
+### Data Flow
+1. **Collection**: RSS feeds → News Collector → Filter by keywords
+2. **Processing**: FinBERT ML Analysis → Entity Extraction → Database
+3. **Analytics**: Sentiment aggregation → Correlation analysis → API
+4. **Visualization**: Next.js frontend → Charts & metrics
+
+## 📖 API Documentation
+
+Once the backend is running, visit http://localhost:8000/docs for interactive API documentation.
+
+### Key Endpoints
+
+#### News & Sentiment
+- `GET /api/news/recent` - Get recent news with sentiment
+- `GET /api/news/timeseries` - Sentiment time series data
+
+#### Market Data  
+- `GET /api/market/yields` - Treasury yield data
+- `GET /api/market/etf/{ticker}` - ETF price data
+
+#### Analytics
+- `GET /api/analytics/correlation` - Sentiment-yield correlation
+- `GET /api/analytics/summary` - Analytics summary
+
+#### Data Management
+- `POST /api/data/refresh` - Trigger data collection
+- `GET /api/data/stats` - Database statistics
+
+## ⚙️ Configuration
+
+### Backend Configuration
+
+**Environment Variables** (`.env`):
+```bash
+# Optional: FRED API key for Treasury data
+FRED_API_KEY=your_key_here
+
+# Database path (default: ./data/ratewatch.db)
+DATABASE_PATH=./data/ratewatch.db
+
+# API settings
+API_HOST=0.0.0.0
+API_PORT=8000
+```
+
+**News Feeds** (`config/feeds.yaml`):
 ```yaml
 feeds:
   - https://www.reuters.com/markets/rss
   - https://www.federalreserve.gov/feeds/press_all.xml
   - https://www.bls.gov/feed/news.rss
-  - https://www.treasury.gov/resource-center/presscenter/press-releases/Pages/rss.aspx
 
 keywords:
   must_have_any:
@@ -283,93 +213,171 @@ keywords:
     - yield
     - fed
     - inflation
-    - cpi
-    # ... more keywords
+    # ... add more keywords
 
 stop_words:
   - celebrity
   - sports
-  - entertainment
+  # ... add words to filter out
 ```
 
-### Dashboard Customization
+### Frontend Configuration
 
-Edit `dashboard/app.py` to customize:
-- Color scheme (TradingView dark theme by default)
-- Refresh intervals
-- Chart types
-- Metric displays
-
-## 🧪 Testing & Development
-
+**API URL** (`frontend/.env.local`):
 ```bash
-# Run basic functionality test
-python -m squawk.main --hours 1 --top 5
-
-# Test warehouse integration
-python -c "from squawk.warehouse_integration import get_warehouse; print(get_warehouse().get_stats())"
-
-# Test API endpoints
-# (Start API first, then)
-curl http://localhost:8000/sentiment/stats
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-## 📦 Integration with Quant-SQL-Warehouse
+## 🎨 Features Deep Dive
 
-This project extends [quant-sql-warehouse](../quant-sql-warehouse) with sentiment analytics:
+### ML Sentiment Analysis
+- Uses **FinBERT** (ProsusAI/finbert) - state-of-the-art financial sentiment model
+- Returns sentiment score (-1 to +1), label (bullish/bearish/neutral), and confidence
+- Batch processing for efficiency
+- GPU support (automatic fallback to CPU)
 
-1. **Shared Database**: Both projects use the same DuckDB warehouse
-2. **Extended API**: Sentiment endpoints added to existing market data API
-3. **Unified Analytics**: Correlate sentiment with technical indicators (RSI, VWAP)
-4. **Single Dashboard**: View news sentiment + market data in one interface
+### Entity Recognition
+- **Fed Officials**: Powell, Williams, Brainard, etc.
+- **Economic Indicators**: CPI, NFP, FOMC, GDP, etc.
+- **Treasury Instruments**: 2Y, 5Y, 10Y, 30Y
+- **High-Impact Detection**: Automatically flags important news
 
-To integrate:
+### Correlation Analysis
+- Pearson correlation between sentiment and yield changes
+- Statistical significance testing (p-values)
+- Lag analysis (sentiment leading vs. lagging yields)
+- Rolling correlations over time
+- Daily aggregation for stability
+
+## 🔧 Development
+
+### Backend Development
 ```bash
-# Ensure both projects are siblings
-/projects/
-  ├── fixed-income-news-summarizer/
-  └── quant-sql-warehouse/
+# Run with auto-reload
+uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 
-# Initialize warehouse schema
-cd quant-sql-warehouse
-python etl/load_data.py
+# Run tests
+pytest
 
-# Add sentiment tables
-sqlite3 warehouse.duckdb < sql/sentiment_schema.sql
-
-# Run news collection
-cd ../fixed-income-news-summarizer
-python -m squawk.main --hours 24
-
-# Start integrated API
-cd ../quant-sql-warehouse
-python -m api.main
+# Check linting
+flake8 backend/
 ```
 
-## 🎯 Use Cases for Data Science Internships
+### Frontend Development
+```bash
+cd frontend
 
-This project demonstrates:
+# Development server
+npm run dev
 
-1. **ML/NLP Pipeline**: FinBERT implementation, entity extraction, confidence scoring
-2. **Data Engineering**: ETL design, DuckDB integration, API development
-3. **Statistical Analysis**: Correlation testing, hypothesis testing, event studies
-4. **Quantitative Finance**: Signal generation, backtesting, risk metrics
-5. **Full-Stack Skills**: Backend API + interactive frontend dashboard
-6. **Production Thinking**: Error handling, logging, modular design
-7. **Clear Value Proposition**: "Sentiment predicts X% of yield moves" is measurable
+# Build for production
+npm run build
 
-## 📝 License
+# Start production server
+npm start
 
-MIT License - See [LICENSE](LICENSE) for details
+# Lint code
+npm run lint
+```
+
+## 📈 Performance
+
+### First Run
+- Model download: ~5-10 minutes (FinBERT ~500MB)
+- First news collection: ~2-3 minutes for 50 articles
+
+### Subsequent Runs
+- News collection (50 items): ~30-45 seconds
+- Sentiment analysis: ~20 seconds (CPU), ~5 seconds (GPU)
+- Database queries: <1 second
+- Dashboard load: <2 seconds
+
+### Data Storage
+- News articles (1 month): ~50MB
+- DuckDB database: ~100-200MB with full historical data
+- Model cache: ~500MB (one-time)
+
+## 🚢 Deployment
+
+### Backend Deployment
+```bash
+# Using Gunicorn
+gunicorn backend.main:app -w 4 -k uvicorn.workers.UvicornWorker
+
+# Using Docker
+docker build -t ratewatch-backend -f backend/Dockerfile .
+docker run -p 8000:8000 ratewatch-backend
+```
+
+### Frontend Deployment
+```bash
+cd frontend
+
+# Build static export
+npm run build
+
+# Deploy to Vercel, Netlify, or any static host
+# Or serve with Node.js
+npm start
+```
+
+## 🎯 Use Cases
+
+### For Data Science / Finance Portfolios
+- Demonstrates ML/NLP skills (FinBERT implementation)
+- Shows data engineering capabilities (ETL, APIs, databases)
+- Statistical analysis (correlation, hypothesis testing)
+- Full-stack development (FastAPI + Next.js)
+- Clean, production-quality code
+
+### For Research
+- Study sentiment-market relationships
+- Test different correlation hypotheses
+- Analyze Fed communication impact
+- Backtest sentiment-based strategies
+
+### For Trading/Investment
+- Monitor real-time fixed-income sentiment
+- Track high-impact news events
+- Understand sentiment drivers of yields
+- Generate alerts on sentiment shifts
+
+## 📝 Future Enhancements
+
+### Planned Features
+- [ ] Real-time WebSocket updates
+- [ ] Email/SMS alerts for high-impact news
+- [ ] More sophisticated backtesting
+- [ ] Multi-asset correlation (equities, commodities)
+- [ ] Custom news source configuration via UI
+- [ ] Historical data export (CSV, JSON)
+- [ ] User authentication and saved preferences
+- [ ] Mobile app (React Native)
 
 ## 🤝 Contributing
 
-Contributions welcome! This is a portfolio project demonstrating data science + quant finance skills.
+Contributions are welcome! This is a portfolio/demonstration project showcasing modern data science and web development practices.
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🙏 Acknowledgments
+
+- **FinBERT Model**: ProsusAI/finbert (HuggingFace)
+- **News Sources**: Reuters, Federal Reserve, BLS, Treasury
+- **Market Data**: FRED API, Yahoo Finance
+
+## ⚠️ Disclaimer
+
+This project is for **educational and demonstration purposes only**. It is not financial advice. Past correlations do not guarantee future results. Always do your own research and consult with financial professionals before making investment decisions.
 
 ## 📧 Contact
 
-Built for data science internship applications - showcasing ML, data engineering, and financial analytics.
+Built as a demonstration project for data science/finance roles.
+
+**Tech Stack Highlights**: Python, FastAPI, Next.js, TypeScript, ML/NLP, Financial Analytics, Modern UI/UX
 
 ---
 
-**Note**: This project is for educational and demonstration purposes. Not financial advice. Past performance doesn't guarantee future results.
+**RateWatch** - Sentiment meets Markets 📈

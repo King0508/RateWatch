@@ -1,0 +1,36 @@
+# RateWatch Backend Requirements
+
+# Core API
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.10.0
+
+# Database
+duckdb>=1.1.0
+
+# ML/NLP (from existing project)
+transformers>=4.36.0
+torch>=2.0.0
+spacy>=3.7.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Market Data
+yfinance>=0.2.30
+fredapi>=0.5.0
+
+# RSS Feed Parsing
+feedparser==6.0.11
+
+# Utilities
+python-dotenv==1.0.0
+PyYAML==6.0.2
+requests==2.32.3
+
+# Development
+pytest>=7.4.0
+httpx>=0.25.0  # For testing FastAPI
+
