@@ -120,39 +120,24 @@ cd frontend && npm run dev
 ### Project Structure
 ```
 RateWatch/
-├── backend/
-│   ├── api/                    # FastAPI routes
-│   │   ├── news.py            # News & sentiment endpoints
-│   │   ├── market.py          # Market data endpoints
-│   │   ├── analytics.py       # Correlation analytics
-│   │   └── data.py            # Data management
-│   ├── database/
-│   │   ├── schema.sql         # Database schema
-│   │   └── local_db.py        # DuckDB integration
-│   ├── models/                # Pydantic models
-│   ├── services/              # Business logic
-│   │   ├── ml_sentiment.py    # FinBERT sentiment
-│   │   ├── entity_extraction.py
-│   │   ├── news_collector.py  # RSS feed collection
-│   │   ├── news_processor.py  # Integrated processing
-│   │   ├── analytics_service.py
-│   │   └── market_data.py
-│   └── main.py                # FastAPI application
-├── frontend/
-│   ├── app/                   # Next.js 14 app router
-│   │   ├── page.tsx          # Dashboard
-│   │   ├── analytics/        # Analytics page
-│   │   └── market/           # Market data page
-│   ├── components/           # React components
-│   │   ├── SentimentCard.tsx
-│   │   ├── MetricsPanel.tsx
-│   │   ├── TimeSeriesChart.tsx
-│   │   └── ...
-│   └── lib/                  # API client & utilities
-├── data/                     # Local data storage
-│   └── ratewatch.db         # DuckDB database
-└── config/
-    └── feeds.yaml           # RSS feed configuration
+├── backend/              # FastAPI Python backend
+│   ├── api/             # REST API endpoints (news, market, analytics, data)
+│   ├── database/        # DuckDB schema & connection manager
+│   ├── models/          # Pydantic data models for validation
+│   ├── services/        # Business logic (ML, analytics, data collection)
+│   └── main.py          # FastAPI application entry point
+├── frontend/            # Next.js React frontend
+│   ├── app/            # Pages: dashboard, analytics, market
+│   ├── components/     # Reusable React components
+│   └── lib/            # API client & TypeScript utilities
+├── config/             # RSS feeds configuration
+├── data/               # Local database storage (gitignored)
+├── .gitignore          # Comprehensive ignore rules
+├── LICENSE             # MIT License
+├── README.md           # Project documentation (this file)
+├── ratewatch.png       # Dashboard screenshot
+├── start-backend.bat   # Quick start backend
+└── start-frontend.bat  # Quick start frontend
 ```
 
 ### Data Flow
